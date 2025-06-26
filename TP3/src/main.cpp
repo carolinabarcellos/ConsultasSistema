@@ -1,19 +1,42 @@
 #include "arvore.hpp"
 #include "estatisticas.hpp"
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <fstream>
 #include <sstream>
 
 using namespace std;
 
-int main() {
+
+int main(int argc, char* argv[]) {
+
+    if (argc < 2) {
+        cout << "Nenhum arquivo foi fornecido." << endl;
+        return 1;
+    }
+
+    ifstream arquivo(argv[1]); // Abrindo com ifstream
+
+    if (!arquivo.is_open()) {
+        cout << "Erro ao abrir o arquivo." << endl;
+        return 1;
+    }
+    
+    //Verifica se o arquivo está vazio
+    arquivo.seekg(0, ios::end);
+    if (arquivo.tellg() == 0) {
+        cout << "O arquivo está vazio." << endl;
+        return 1;
+    }
+    arquivo.seekg(0, ios::beg);
+
     string linha;
     ArvoreAVL<nodeCliente> arvore_clientes;
     ArvoreAVL<nodePacote> arvore_pacotes;
 
     // Leitura da entrada
-    while (getline(cin, linha) && !linha.empty()) {
+    while (getline(arquivo, linha) && !linha.empty()) {
 
         istringstream ss(linha);
         string tempo, tipoRegistro;
@@ -117,7 +140,7 @@ int main() {
             ss >> nome_cliente;
 
             auto cliente = arvore_clientes.Buscar(nome_cliente);
-            cout << endl<< tempo << " CV " << nome_cliente << endl;
+            cout << setw(6) << setfill('0') << stoi(tempo) << " CL " << nome_cliente << endl;
 
             ArvoreAVL<nodeEvento> * arvore_eventos=new ArvoreAVL<nodeEvento>(); //crio uma avl de eventos
 
@@ -145,6 +168,9 @@ int main() {
                 arvore_eventos->EmOrdem();
                 delete arvore_eventos;
             }
+            else{
+                cout<<0<<endl;
+            }
 
         }
 
@@ -153,12 +179,15 @@ int main() {
             ss >> id_pacote;
 
             auto pacote = arvore_pacotes.Buscar(id_pacote);
-            cout << endl<<tempo << " PC " << id_pacote << endl;
+            cout << setw(6) << setfill('0') << stoi(tempo) << " PC " << id_pacote << endl;
 
             if (pacote) {
                 cout << pacote->historico.GetTamanho() << endl;
                 pacote->historico.Imprime();
             } 
+            else{
+                cout<<0<<endl;
+            }
         }
     }
 
