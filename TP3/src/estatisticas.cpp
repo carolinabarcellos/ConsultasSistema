@@ -2,6 +2,7 @@
 #include <iostream>
 using namespace std;
 
+//Converte uma string para TipoEventoEstatisticas
 TipoEventoEstatisticas StringParaTipoEvento(const string& tipoStr) {
     if (tipoStr == "RG") return RG;
     if (tipoStr == "AR") return AR;  
@@ -14,6 +15,7 @@ TipoEventoEstatisticas StringParaTipoEvento(const string& tipoStr) {
     exit(1);
 }
 
+//Converte um TipoEventoEstatisticas para string
 string TipoEventoParaString(TipoEventoEstatisticas tipo_evento) {
     if (tipo_evento == RG) return "RG";
     if (tipo_evento == AR) return "AR";  
@@ -36,6 +38,7 @@ EventoEstatisticas::EventoEstatisticas(){
     chave_pacote="";
 }
 
+//Imprime um EventoEstatisicas
 void EventoEstatisticas::Imprime(){
         cout<<tempo<<" ";   
         cout<<"EV ";
