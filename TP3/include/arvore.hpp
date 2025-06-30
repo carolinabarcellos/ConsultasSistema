@@ -7,25 +7,26 @@
 #include "lista.hpp"
 using namespace std;
 
-// Classe Árvore AVL
+// Classe genérica de árvore AVL, estrutura aprendida em sala de aula
 template <typename node>
 class ArvoreAVL {
 public:
     ArvoreAVL();
     ~ArvoreAVL();
 
-    void Insere(string n);
-    void Insere (string chave, EventoEstatisticas elemento);
-    void Remove(string n);
-    node* Buscar(string chave);
-    void EmOrdem();
-    void PreOrdem();
-    void PosOrdem();
-    node* GetRaiz();
+    void Insere(string n); // Inserção padrão
+    void Insere(string chave, EventoEstatisticas elemento); // Inserção para eventos
+    void Remove(string n); // Remoção por chave
+    node* Buscar(string chave); // Busca por chave
+    void EmOrdem();  // Impressão em ordem
+    void PreOrdem(); // Impressão pré-ordem
+    void PosOrdem(); // Impressão pós-ordem
+    node* GetRaiz(); // Retorna a raiz da árvore
 
 private:
     node* raiz;
 
+    // Funções auxiliares internas
     int Altura(node* n);
     int FatorBalanceamento(node* n);
     void AtualizarAltura(node*& n);
@@ -39,78 +40,75 @@ private:
     void EmOrdem(node* n);
     void PreOrdem(node* n);
     void PosOrdem(node* n);
-    void Limpa(node* n);
+    void Limpa(node* n); // Libera memória recursivamente
 };
 
+// Nó que representa um pacote
 class nodePacote {
 public:
-    string chave;
+    string chave; // ID do pacote
     int height;
-    string remetente;
-    string destinatario;
-    EventoEstatisticas evento_atual;
-    ListaEncadeada<EventoEstatisticas> historico;  //Lista encadeada de eventos relacionados ao pacote e e suas estatísticas
-    nodePacote* leftChild;
-    nodePacote* rightChild;
-    nodePacote* parent;
+    string remetente, destinatario;
+    ListaEncadeada<EventoEstatisticas> historico; // Histórico de eventos
+    nodePacote *leftChild, *rightChild, *parent;
 
-    nodePacote(string id) : chave(id), height(1), 
+    nodePacote(string id) : chave(id), height(1),
         leftChild(nullptr), rightChild(nullptr), parent(nullptr) {}
 };
 
-//Nó evento
+// Nó que representa eventos
 class nodeEvento {
 public:
-    string chave;
+    string chave; // Tempo do evento
     int height;
-    nodeEvento* leftChild;
-    nodeEvento* rightChild;
-    nodeEvento* parent;
-    ListaEncadeada<EventoEstatisticas> eventos; // Lista de eventos 
+    nodeEvento *leftChild, *rightChild, *parent;
+    ListaEncadeada<EventoEstatisticas> eventos; // Lista para tratar colisões de tempo
 
-    nodeEvento(string tempo) : chave(tempo), height(1), 
+    nodeEvento(string tempo) : chave(tempo), height(1),
         leftChild(nullptr), rightChild(nullptr), parent(nullptr) {}
-    
-    ~nodeEvento(){}
+
+    ~nodeEvento() {}
 };
 
-
-//Nó cliente
+// Nó que representa um cliente
 class nodeCliente {
-    public:
-        string chave;
-        ListaEncadeada<EventoEstatisticas> pacotes_registrados;
-        int height;
-        nodeCliente* leftChild;
-        nodeCliente* rightChild;
-        nodeCliente* parent;
+public:
+    string chave; // Nome do cliente
+    ListaEncadeada<EventoEstatisticas> pacotes_registrados; // Eventos onde foi remetente/destinatário
+    int height;
+    nodeCliente *leftChild, *rightChild, *parent;
 
-        nodeCliente(string nome) : chave(nome), height(1),
-            leftChild(nullptr), rightChild(nullptr), parent(nullptr) {}
+    nodeCliente(string nome) : chave(nome), height(1),
+        leftChild(nullptr), rightChild(nullptr), parent(nullptr) {}
 
-        ~nodeCliente() {}
+    ~nodeCliente() {}
 };
 
+// Construtor: inicia árvore vazia
 template <typename node>
 ArvoreAVL<node>::ArvoreAVL() {
     raiz = nullptr;
 }
 
+// Destrutor: libera todos os nós
 template <typename node>
 ArvoreAVL<node>::~ArvoreAVL() {
     Limpa(raiz);
 }
 
+// Retorna raiz
 template <typename node>
 node* ArvoreAVL<node>::GetRaiz() {
     return raiz;
 }
 
+// Retorna altura do nó
 template <typename node>
 int ArvoreAVL<node>::Altura(node* n) {
     return (n == nullptr) ? 0 : n->height;
 }
 
+// Calcula fator de balanceamento (FB = dir - esq)
 template <typename node>
 int ArvoreAVL<node>::FatorBalanceamento(node* n) {
     if (n == nullptr) return 0;
@@ -121,6 +119,7 @@ int ArvoreAVL<node>::FatorBalanceamento(node* n) {
     return alturaDir - alturaEsq;
 }
 
+// Atualiza a altura do nó baseado nos filhos
 template <typename node>
 void ArvoreAVL<node>::AtualizarAltura(node*& n) {
     if (n != nullptr) {
@@ -130,6 +129,7 @@ void ArvoreAVL<node>::AtualizarAltura(node*& n) {
     }
 }
 
+// Rotação simples à direita
 template <typename node>
 void ArvoreAVL<node>::RotacaoDireita(node*& y) {
     node* x = y->leftChild;
@@ -148,6 +148,7 @@ void ArvoreAVL<node>::RotacaoDireita(node*& y) {
     y = x;
 }
 
+// Rotação simples à esquerda
 template <typename node>
 void ArvoreAVL<node>::RotacaoEsquerda(node*& x) {
     node* y = x->rightChild;
@@ -166,19 +167,20 @@ void ArvoreAVL<node>::RotacaoEsquerda(node*& x) {
     x = y;
 }
 
+// Balanceia a subárvore a partir de n
 template <typename node>
 void ArvoreAVL<node>::Balancear(node*& n) {
     AtualizarAltura(n);
 
     int fb = FatorBalanceamento(n);
 
-    if (fb > 1) {
+    if (fb > 1) { // desequilíbrio à direita
         if (FatorBalanceamento(n->rightChild) < 0) {
             RotacaoDireita(n->rightChild);
         }
         RotacaoEsquerda(n);
     }
-    else if (fb < -1) {
+    else if (fb < -1) { // desequilíbrio à esquerda
         if (FatorBalanceamento(n->leftChild) > 0) {
             RotacaoEsquerda(n->leftChild);
         }
@@ -186,12 +188,12 @@ void ArvoreAVL<node>::Balancear(node*& n) {
     }
 }
 
+// Inserção padrão
 template <typename node>
 void ArvoreAVL<node>::InsereRecursivo(node*& p, string n) {
     if (p == nullptr) {
         p = new node(n);
-    }
-    else {
+    } else {
         if (n < p->chave) {
             InsereRecursivo(p->leftChild, n);
             p->leftChild->parent = p;
@@ -204,11 +206,12 @@ void ArvoreAVL<node>::InsereRecursivo(node*& p, string n) {
     Balancear(p);
 }
 
+// Inserção com elemento (caso de nodeEvento)
 template <typename node>
 void ArvoreAVL<node>::InsereRecursivo(node*& p, string n, EventoEstatisticas elemento) {
     if (p == nullptr) {
         p = new node(n);
-        p->eventos.InsereOrdenadoPorIdPacote(elemento);  // Cria nó e já insere na lista
+        p->eventos.InsereOrdenadoPorIdPacote(elemento); // Novo nó, insere evento
     }
     else {
         if (n < p->chave) {
@@ -220,15 +223,14 @@ void ArvoreAVL<node>::InsereRecursivo(node*& p, string n, EventoEstatisticas ele
             p->rightChild->parent = p;
         }
         else {
-            // Se a chave já existe, apenas adiciona na lista de eventos
+            // Chave já existe, apenas insere evento
             p->eventos.InsereOrdenadoPorIdPacote(elemento);
-            return; // Já retorna aqui, pois não há alteração na árvore
+            return;
         }
     }
 
     Balancear(p);
 }
-
 
 template <typename node>
 void ArvoreAVL<node>::Insere(string n) {
@@ -240,7 +242,7 @@ void ArvoreAVL<node>::Insere(string chave, EventoEstatisticas elemento) {
     InsereRecursivo(raiz, chave, elemento);
 }
 
-
+// Busca por chave
 template <typename node>
 node* ArvoreAVL<node>::Buscar(string chave) {
     node* atual = raiz;
@@ -252,6 +254,7 @@ node* ArvoreAVL<node>::Buscar(string chave) {
     return nullptr;
 }
 
+// Retorna o maior nó (usado na remoção)
 template <typename node>
 node* ArvoreAVL<node>::MaiorChave(node* n) {
     node* atual = n;
@@ -261,6 +264,7 @@ node* ArvoreAVL<node>::MaiorChave(node* n) {
     return atual;
 }
 
+// Remove por chave
 template <typename node>
 void ArvoreAVL<node>::Remove(string n) {
     RemoveRecursivo(raiz, n);
@@ -277,6 +281,7 @@ void ArvoreAVL<node>::RemoveRecursivo(node*& p, string chave) {
         RemoveRecursivo(p->rightChild, chave);
     }
     else {
+        // Nó com um ou nenhum filho
         if (p->leftChild == nullptr || p->rightChild == nullptr) {
             node* temp = (p->leftChild != nullptr) ? p->leftChild : p->rightChild;
             if (temp) temp->parent = p->parent;
@@ -284,17 +289,17 @@ void ArvoreAVL<node>::RemoveRecursivo(node*& p, string chave) {
             p = temp;
         }
         else {
+            // Dois filhos: substitui pelo maior da subárvore esquerda
             node* temp = MaiorChave(p->leftChild);
             p->chave = temp->chave;
             RemoveRecursivo(p->leftChild, temp->chave);
         }
     }
 
-    if (p != nullptr){
-        Balancear(p);
-    }
+    if (p != nullptr) Balancear(p);
 }
 
+// Libera todos os nós da árvore
 template <typename node>
 void ArvoreAVL<node>::Limpa(node* n) {
     if (n != nullptr) {
@@ -304,12 +309,13 @@ void ArvoreAVL<node>::Limpa(node* n) {
     }
 }
 
+// Impressão em ordem
 template <typename node>
 void ArvoreAVL<node>::EmOrdem() {
     EmOrdem(raiz);
 }
 
-//Adaptado pra tratar evento estatisticas
+// Imprime eventos em ordem crescente de chave
 template <typename node>
 void ArvoreAVL<node>::EmOrdem(node* n) {
     if (n != nullptr) {
@@ -324,11 +330,10 @@ void ArvoreAVL<node>::PreOrdem() {
     PreOrdem(raiz);
 }
 
-//Adaptado pra tratar evento estatisticas
 template <typename node>
 void ArvoreAVL<node>::PreOrdem(node* n) {
     if (n != nullptr) {
-        cout << n->chave << " ";
+        n->eventos.Imprime();
         PreOrdem(n->leftChild);
         PreOrdem(n->rightChild);
     }
@@ -344,7 +349,7 @@ void ArvoreAVL<node>::PosOrdem(node* n) {
     if (n != nullptr) {
         PosOrdem(n->leftChild);
         PosOrdem(n->rightChild);
-        cout << n->chave << " ";
+        n->eventos.Imprime();
     }
 }
 
