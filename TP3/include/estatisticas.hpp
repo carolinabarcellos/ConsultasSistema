@@ -5,11 +5,12 @@
 
 using namespace std;
 
-
 enum TipoEventoEstatisticas{RG=1, AR, RM, UR, TR, EN};
+
 TipoEventoEstatisticas StringParaTipoEvento(const std::string& tipoStr);
 string TipoEventoParaString(TipoEventoEstatisticas tipo_evento);
 
+//Classe que armazena os eventos do sistema
 class EventoEstatisticas {
     private:
         TipoEventoEstatisticas tipo_evento;
