@@ -1,6 +1,7 @@
 #ifndef LISTA_HPP
 #define LISTA_HPP
 
+#include "global.hpp"
 #include "iostream"
 
 using namespace std;
@@ -25,7 +26,6 @@ public:
     T Pesquisa(T c);                 // Pesquisa item na lista
     void Limpa();                    // Remove todos os elementos
     void Imprime();                  // Imprime todos os eventos
-    void InsereOrdenadoPorIdPacote(EventoEstatisticas &elemento); // Inserção ordenada por ID (para nodeEvento)
 
     TipoCelula<T>* primeiro;         // Ponteiro para célula cabeça
     TipoCelula<T>* ultimo;           // Ponteiro para último elemento
@@ -177,66 +177,45 @@ T ListaEncadeada<T>::GetItem(int pos) {
     return p->item;
 }
 
-// Insere ordenadamente por ID do pacote (usado na árvore de eventos)
-template <typename T>
-void ListaEncadeada<T>::InsereOrdenadoPorIdPacote(EventoEstatisticas& elemento) {
-    TipoCelula<EventoEstatisticas>* nova = new TipoCelula<EventoEstatisticas>(elemento);
-
-    TipoCelula<EventoEstatisticas>* anterior = primeiro;
-    TipoCelula<EventoEstatisticas>* atual = primeiro->prox;
-
-    // Ordena com base no ID do pacote (chave)
-    while (atual != nullptr && atual->item.GetChave() < elemento.GetChave()) {
-        anterior = atual;
-        atual = atual->prox;
-    }
-
-    anterior->prox = nova;
-    nova->prox = atual;
-
-    if (nova->prox == nullptr) {
-        ultimo = nova;
-    }
-
-    tamanho++;
-}
-
 // Imprime a lista de eventos formatando conforme o tipo
-template <typename T>
-void ListaEncadeada<T>::Imprime() {
-    TipoCelula<T>* p = primeiro->prox;
+// Especialização da função Imprime para T = int
+template <>
+void ListaEncadeada<int>::Imprime() {
+    TipoCelula<int>* p = primeiro->prox;
 
     while (p != nullptr) {
-        cout << p->item.GetTempo() << " ";
+        EventoEstatisticas& evento = lista_eventos[p->item];  // p->item é o índice
+
+        cout << evento.GetTempo() << " ";
         cout << "EV ";
 
-        if (p->item.GetTipo() == RM || p->item.GetTipo() == UR || p->item.GetTipo() == AR) {
-            cout << TipoEventoParaString(p->item.GetTipo()) << " ";
-            cout << p->item.GetChave() << " ";
-            cout << p->item.GetArmazemDestino() << " ";
-            cout << p->item.GetSecaoDestino() << endl;
+        if (evento.GetTipo() == RM || evento.GetTipo() == UR || evento.GetTipo() == AR) {
+            cout << TipoEventoParaString(evento.GetTipo()) << " ";
+            cout << evento.GetChave() << " ";
+            cout << evento.GetArmazemDestino() << " ";
+            cout << evento.GetSecaoDestino() << endl;
         }
 
-        else if (p->item.GetTipo() == TR) {
-            cout << TipoEventoParaString(p->item.GetTipo()) << " ";
-            cout << p->item.GetChave() << " ";
-            cout << p->item.GetArmazemOrigem() << " ";
-            cout << p->item.GetArmazemDestino() << endl;
+        else if (evento.GetTipo() == TR) {
+            cout << TipoEventoParaString(evento.GetTipo()) << " ";
+            cout << evento.GetChave() << " ";
+            cout << evento.GetArmazemOrigem() << " ";
+            cout << evento.GetArmazemDestino() << endl;
         }
 
-        else if (p->item.GetTipo() == RG) {
-            cout << TipoEventoParaString(p->item.GetTipo()) << " ";
-            cout << p->item.GetChave() << " ";
-            cout << p->item.GetNomeRemetente() << " ";
-            cout << p->item.GetNomeDestinatario() << " ";
-            cout << p->item.GetArmazemOrigem() << " ";
-            cout << p->item.GetArmazemDestino() << endl;
+        else if (evento.GetTipo() == RG) {
+            cout << TipoEventoParaString(evento.GetTipo()) << " ";
+            cout << evento.GetChave() << " ";
+            cout << evento.GetNomeRemetente() << " ";
+            cout << evento.GetNomeDestinatario() << " ";
+            cout << evento.GetArmazemOrigem() << " ";
+            cout << evento.GetArmazemDestino() << endl;
         }
 
-        else if (p->item.GetTipo() == EN) {
-            cout << TipoEventoParaString(p->item.GetTipo()) << " ";
-            cout << p->item.GetChave() << " ";
-            cout << p->item.GetArmazemDestino() << endl;
+        else if (evento.GetTipo() == EN) {
+            cout << TipoEventoParaString(evento.GetTipo()) << " ";
+            cout << evento.GetChave() << " ";
+            cout << evento.GetArmazemDestino() << endl;
         }
 
         p = p->prox;
