@@ -7,7 +7,7 @@
 #include "lista.hpp"
 using namespace std;
 
-// Classe genérica de árvore AVL, estrutura aprendida em sala de aula
+// Classe genérica de árvore AVL
 template <typename node>
 class ArvoreAVL {
 public:
@@ -15,7 +15,6 @@ public:
     ~ArvoreAVL();
 
     void Insere(string n); // Inserção padrão
-    void Insere(string chave, EventoEstatisticas elemento); // Inserção para eventos
     void Remove(string n); // Remoção por chave
     node* Buscar(string chave); // Busca por chave
     void EmOrdem();  // Impressão em ordem
@@ -31,7 +30,6 @@ private:
     int FatorBalanceamento(node* n);
     void AtualizarAltura(node*& n);
     void InsereRecursivo(node*& p, string n);
-    void InsereRecursivo(node*& p, string chave, EventoEstatisticas elemento);
     void RemoveRecursivo(node*& p, string chave);
     void RotacaoDireita(node*& y);
     void RotacaoEsquerda(node*& x);
@@ -49,32 +47,18 @@ public:
     string chave; // ID do pacote
     int height;
     string remetente, destinatario;
-    ListaEncadeada<EventoEstatisticas> historico; // Histórico de eventos
+    ListaEncadeada<int> historico; // Histórico de indices para os eventos
     nodePacote *leftChild, *rightChild, *parent;
 
     nodePacote(string id) : chave(id), height(1),
         leftChild(nullptr), rightChild(nullptr), parent(nullptr) {}
 };
 
-// Nó que representa eventos
-class nodeEvento {
-public:
-    string chave; // Tempo do evento
-    int height;
-    nodeEvento *leftChild, *rightChild, *parent;
-    ListaEncadeada<EventoEstatisticas> eventos; // Lista para tratar colisões de tempo
-
-    nodeEvento(string tempo) : chave(tempo), height(1),
-        leftChild(nullptr), rightChild(nullptr), parent(nullptr) {}
-
-    ~nodeEvento() {}
-};
-
 // Nó que representa um cliente
 class nodeCliente {
 public:
     string chave; // Nome do cliente
-    ListaEncadeada<EventoEstatisticas> pacotes_registrados; // Eventos onde foi remetente/destinatário
+    ListaEncadeada<int> pacotes_registrados; // Eventos onde foi remetente/destinatário
     int height;
     nodeCliente *leftChild, *rightChild, *parent;
 
@@ -206,40 +190,9 @@ void ArvoreAVL<node>::InsereRecursivo(node*& p, string n) {
     Balancear(p);
 }
 
-// Inserção com elemento (caso de nodeEvento)
-template <typename node>
-void ArvoreAVL<node>::InsereRecursivo(node*& p, string n, EventoEstatisticas elemento) {
-    if (p == nullptr) {
-        p = new node(n);
-        p->eventos.InsereOrdenadoPorIdPacote(elemento); // Novo nó, insere evento
-    }
-    else {
-        if (n < p->chave) {
-            InsereRecursivo(p->leftChild, n, elemento);
-            p->leftChild->parent = p;
-        }
-        else if (n > p->chave) {
-            InsereRecursivo(p->rightChild, n, elemento);
-            p->rightChild->parent = p;
-        }
-        else {
-            // Chave já existe, apenas insere evento
-            p->eventos.InsereOrdenadoPorIdPacote(elemento);
-            return;
-        }
-    }
-
-    Balancear(p);
-}
-
 template <typename node>
 void ArvoreAVL<node>::Insere(string n) {
     InsereRecursivo(raiz, n);
-}
-
-template <typename node>
-void ArvoreAVL<node>::Insere(string chave, EventoEstatisticas elemento) {
-    InsereRecursivo(raiz, chave, elemento);
 }
 
 // Busca por chave
