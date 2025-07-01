@@ -40,42 +40,42 @@ EventoEstatisticas::EventoEstatisticas(){
 
 //Imprime um EventoEstatisicas
 void EventoEstatisticas::Imprime(){
-        cout<<tempo<<" ";   
-        cout<<"EV ";
+    cout<<tempo<<" ";   
+    cout<<"EV ";
         
-        if (tipo_evento==RM || tipo_evento==UR || tipo_evento==AR){
+    if (tipo_evento==RM || tipo_evento==UR || tipo_evento==AR){
 
-            cout<<TipoEventoParaString(tipo_evento)<<" ";   
-            cout<<chave_pacote<<" ";
-            cout<<armazem_destino<<" ";
-            cout<<secao_destino<<endl; 
-        }
+        cout<<TipoEventoParaString(tipo_evento)<<" ";   
+        cout<<chave_pacote<<" ";
+        cout<<armazem_destino<<" ";
+        cout<<secao_destino<<endl; 
+    }
 
-        else if (tipo_evento==TR){
+    else if (tipo_evento==TR){
 
-            cout<<TipoEventoParaString(tipo_evento)<<" "; 
-            cout<<chave_pacote<<" ";  
-            cout<<armazem_origem<<" ";
-            cout<<armazem_destino<<endl; 
-        }
+        cout<<TipoEventoParaString(tipo_evento)<<" "; 
+        cout<<chave_pacote<<" ";  
+        cout<<armazem_origem<<" ";
+        cout<<armazem_destino<<endl; 
+    }
 
-        else if (tipo_evento==RG){
+    else if (tipo_evento==RG){
             
-            cout<<TipoEventoParaString(tipo_evento)<<" ";  
-            cout<<chave_pacote<<" "; 
-            cout<<nome_remetente<<" "; 
-            cout<<nome_destinatario<< " ";  
-            cout<<armazem_origem<<" ";
-            cout<<armazem_destino<<endl; 
-        }
+        cout<<TipoEventoParaString(tipo_evento)<<" ";  
+        cout<<chave_pacote<<" "; 
+        cout<<nome_remetente<<" "; 
+        cout<<nome_destinatario<< " ";  
+        cout<<armazem_origem<<" ";
+        cout<<armazem_destino<<endl; 
+    }
 
-        else if(tipo_evento==EN){
+    else if(tipo_evento==EN){
             
-            cout<<TipoEventoParaString(tipo_evento)<<" ";  
-            cout<<chave_pacote<<" ";
-            cout<<armazem_destino<<endl; 
+        cout<<TipoEventoParaString(tipo_evento)<<" ";  
+        cout<<chave_pacote<<" ";
+        cout<<armazem_destino<<endl; 
 
-        }
+    }
 }
 
 // Getters
