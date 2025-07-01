@@ -1,3 +1,4 @@
+#include "lista.hpp"
 #include "arvore.hpp"
 #include "estatisticas.hpp"
 #include <iostream>
@@ -6,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 
+EventoEstatisticas lista_eventos[500]; //Vetor que armazena os eventos
 using namespace std;
 
 int main(int argc, char* argv[]) {
@@ -35,6 +37,8 @@ int main(int argc, char* argv[]) {
     string linha;
     ArvoreAVL<nodeCliente> arvore_clientes; // AVL de clientes
     ArvoreAVL<nodePacote> arvore_pacotes;   // AVL de pacotes
+
+    int indice=0;
 
     // Processamento linha por linha
     while (getline(arquivo, linha) && !linha.empty()) {
@@ -74,19 +78,19 @@ int main(int argc, char* argv[]) {
                 if (arvore_clientes.Buscar(nome_destinatario) == nullptr)
                     arvore_clientes.Insere(nome_destinatario);
 
-                // Atualiza dados do pacote e adiciona evento ao histórico
+                // Atualiza dados do pacote e adiciona o indice do evento ao histórico
                 auto pacote = arvore_pacotes.Buscar(id_pacote);
                 if (pacote != nullptr) {
                     pacote->remetente = nome_remetente;
                     pacote->destinatario = nome_destinatario;
-                    pacote->historico.InsereFinal(e);
+                    pacote->historico.InsereFinal(indice);
                 }
 
                 // Adiciona evento aos pacotes registrados de remetente e destinatário
                 auto remetente = arvore_clientes.Buscar(nome_remetente);
                 auto destinatario = arvore_clientes.Buscar(nome_destinatario);
-                if (remetente) remetente->pacotes_registrados.InsereFinal(e);
-                if (destinatario) destinatario->pacotes_registrados.InsereFinal(e);
+                if (remetente) remetente->pacotes_registrados.InsereFinal(indice);
+                if (destinatario) destinatario->pacotes_registrados.InsereFinal(indice);
             }
 
             // Evento de transporte
@@ -98,7 +102,7 @@ int main(int argc, char* argv[]) {
 
                 auto pacote = arvore_pacotes.Buscar(id_pacote);
                 if (pacote)
-                    pacote->historico.InsereFinal(e);
+                    pacote->historico.InsereFinal(indice);
             }
 
             // Evento de entrega
@@ -109,7 +113,7 @@ int main(int argc, char* argv[]) {
 
                 auto pacote = arvore_pacotes.Buscar(id_pacote);
                 if (pacote)
-                    pacote->historico.InsereFinal(e);
+                    pacote->historico.InsereFinal(indice);
             }
 
             // Eventos de Remoção, Rearmazenamento e Armazenamento
@@ -121,8 +125,11 @@ int main(int argc, char* argv[]) {
 
                 auto pacote = arvore_pacotes.Buscar(id_pacote);
                 if (pacote)
-                    pacote->historico.InsereFinal(e);
+                    pacote->historico.InsereFinal(indice);
             }
+
+            lista_eventos[indice]=e;
+            indice++;
         }
 
         // Consulta por cliente
@@ -133,32 +140,53 @@ int main(int argc, char* argv[]) {
             auto cliente = arvore_clientes.Buscar(nome_cliente);
             cout << setw(6) << setfill('0') << stoi(tempo) << " CL " << nome_cliente << endl;
 
-            // Cria AVL para armazenar os eventos mais recentes
-            ArvoreAVL<nodeEvento> * arvore_eventos = new ArvoreAVL<nodeEvento>();
 
             if (cliente) {
                 cout << cliente->pacotes_registrados.GetTamanho() * 2 << endl;
-                cliente->pacotes_registrados.Imprime();
+                cliente->pacotes_registrados.Imprime(); 
+
+                const int MAX_EVENTOS = 500;
+                int indices_eventos[MAX_EVENTOS];
+                int qtd = 0;
 
                 // Percorre todos os pacotes registrados pelo cliente
-                auto no_pacote = cliente->pacotes_registrados.primeiro;
-                while (no_pacote != nullptr) {
-                    string id_pacote = no_pacote->item.GetChave();
-
+                auto no_pacote = cliente->pacotes_registrados.primeiro->prox;
+                while (no_pacote != nullptr && qtd < MAX_EVENTOS) {
+                    string id_pacote = lista_eventos[no_pacote->item].GetChave();
                     auto pacote = arvore_pacotes.Buscar(id_pacote);
-                    if (pacote) {
-                        // Insere evento mais recente na AVL de eventos
-                        string tempo_pacote = pacote->historico.ultimo->item.GetTempo();
-                        arvore_eventos->Insere(tempo_pacote, pacote->historico.ultimo->item);
+
+                    if (pacote && pacote->historico.ultimo != nullptr) {
+                        int indice_ultimo_evento = pacote->historico.ultimo->item;
+                        indices_eventos[qtd++] = indice_ultimo_evento;
                     }
 
                     no_pacote = no_pacote->prox;
                 }
 
-                arvore_eventos->EmOrdem(); // Imprime eventos ordenados por tempo
-                delete arvore_eventos;
+                // Ordena os índices manualmente por tempo (Insertion Sort)
+                for (int i = 1; i < qtd; ++i) {
+                    int chave = indices_eventos[i];
+                    int j = i - 1;
+
+                    while (j >= 0 && (lista_eventos[indices_eventos[j]].GetTempo() > lista_eventos[chave].GetTempo() ||
+                    (lista_eventos[indices_eventos[j]].GetTempo() == lista_eventos[chave].GetTempo() &&
+                    lista_eventos[indices_eventos[j]].GetChave() > lista_eventos[chave].GetChave()) )) {
+                        indices_eventos[j + 1] = indices_eventos[j];
+                        j--;
+                    }
+                    
+                    indices_eventos[j + 1] = chave;
+                }
+
+                // Imprime os eventos ordenados
+                for (int i = 0; i < qtd; ++i) {
+                    EventoEstatisticas& evento = lista_eventos[indices_eventos[i]];
+                    evento.Imprime();
+                    
+                }
             }
-            else {
+
+            else{
                 cout << 0 << endl;
             }
         }
@@ -171,8 +199,8 @@ int main(int argc, char* argv[]) {
             auto pacote = arvore_pacotes.Buscar(id_pacote);
             cout << setw(6) << setfill('0') << stoi(tempo) << " PC " << id_pacote << endl;
 
-            if (pacote) {
-                cout << pacote->historico.GetTamanho() << endl;
+            if (pacote){
+                cout<< pacote->historico.GetTamanho() << endl;
                 pacote->historico.Imprime(); // Imprime todos os eventos do pacote
             } 
             else {
